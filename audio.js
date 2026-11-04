@@ -141,6 +141,12 @@ class PulsoAudio {
       this.tone('square', 1319, t + 0.08, 0.22, 0.1);
     } else if (name === 'win') {
       [0, 4, 7, 12, 16].forEach((n, i) => this.tone('square', 523.25 * Math.pow(2, n / 12), t + i * 0.1, 0.3, 0.12));
+    } else if (name === 'shoot') {
+      this.tone('sawtooth', 900, t, 0.16, 0.16, 180);
+      this.hit(t, 0.08, 0.14, 3000);
+    } else if (name === 'boom') {
+      this.tone('square', 180, t, 0.2, 0.2, 45);
+      this.hit(t, 0.22, 0.5, 500);
     } else if (name === 'ui') {
       this.tone('sine', 880, t, 0.06, 0.12);
     }

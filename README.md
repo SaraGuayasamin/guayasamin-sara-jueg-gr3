@@ -9,11 +9,14 @@ Juego de ritmo y reflejos al estilo *Geometry Dash*, hecho con **Phaser 3** para
 
 ## Cómo se juega
 
-El cubo avanza solo. Tú decides cuándo saltar, y cualquier golpe te devuelve al inicio del nivel.
+Lumi corre sola al ritmo de la música. Tú decides cuándo saltar y cuándo lanzar su poder, y cualquier golpe te devuelve al inicio del nivel.
+
+El poder es una onda de energía que destruye muros agrietados y naves enemigas. Gasta una de las 3 cargas de alma, que se recuperan con el tiempo y al destruir algo. Las naves aparecen de la nada, avisadas por una alerta `!`: se esquivan o se derriban.
 
 | Acción | Control |
 | --- | --- |
 | Saltar / subir con la nave | `ESPACIO`, `↑`, `W`, clic o toque |
+| Lanzar el poder | `X`, `Z`, `F`, clic derecho o botón PODER en pantalla táctil |
 | Elegir nivel | `←` `→` |
 | Modo práctica (en el menú) | `P` |
 | Pausa | `ESC` o `P` |

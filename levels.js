@@ -16,6 +16,8 @@ const PulsoLevels = (() => {
     orb(dx, y) { this.ents.push({ t: 'orb', x: this.c + dx, y: this.row(y) }); return this; }
     gorb(dx, y) { this.ents.push({ t: 'gorb', x: this.c + dx, y: this.row(y) }); return this; }
     coin(dx, y) { this.ents.push({ t: 'coin', x: this.c + dx, y: this.row(y) }); return this; }
+    crack(dx, y, h) { this.ents.push({ t: 'wall', x: this.c + dx, y: this.m ? 9 - (y + h - 1) : y, w: 1, h }); return this; }
+    enemy(dx, y, kind = 'line') { this.ents.push({ t: 'enemy', x: this.c + dx, y: this.row(y), kind }); return this; }
     portal(dx, kind) { this.ents.push({ t: 'portal', x: this.c + dx, kind }); return this; }
     gap(dx, w) { (this.m ? this.ceilGaps : this.gaps).push({ x: this.c + dx, w }); return this; }
     text(dx, y, str) { this.texts.push({ x: this.c + dx, y, str }); return this; }
@@ -45,6 +47,13 @@ const PulsoLevels = (() => {
       for (let i = 0; i < n; i++) this.orb(5 + i * 5, 2);
       return this.adv(last + 13);
     }
+    // Muro de suelo a techo: solo se pasa destruyéndolo con el poder
+    breakWall() { return this.crack(0, 0, 10).adv(10); }
+    low() { return this.enemy(0, 0).adv(18); }
+    high() { return this.enemy(0, 2).adv(18); }
+    sine() { return this.enemy(0, 2, 'sine').adv(18); }
+    ambush() { return this.enemy(0, 0).enemy(5, 2).spikes(18, 2).adv(26); }
+    squad() { return this.enemy(0, 0).enemy(4, 2).enemy(8, 0).adv(28); }
     finish() { this.length = this.c + 16; return this; }
     tunnel(gapRow, gapH = 4) {
       // Columna de nave: suelo y techo dejan un hueco de gapH filas
@@ -66,6 +75,9 @@ const PulsoLevels = (() => {
     b.two().two().three();
     b.section(0x0f2a4a, 0x34d399).adv(8);
     b.text(0, 6, 'Puedes pisar los bloques').hop().hop();
+    b.text(0, 6, '¡Muro agrietado! Rómpelo con X').adv(12).breakWall().adv(4);
+    b.text(0, 6, '¡Nave enemiga! Salta o dispárale').low();
+    b.text(0, 6, 'Esta va alta: no saltes').high();
     b.spike(0).block(4, 0, 4).coin(5, 3).spikes(8, 2).adv(16);
     b.stairs(3);
     b.bridge();
@@ -73,12 +85,12 @@ const PulsoLevels = (() => {
     b.text(0, 6, 'Trampolín: te lanza solo').wall();
     b.pit(3).pit(3).one();
     b.pad(0).coin(4, 5).adv(16);
-    b.pit(4).two();
+    b.pit(4).two().breakWall().low();
     b.section(0x4a0f2a, 0xf472b6).adv(8);
     b.text(2, 6, 'Toca la esfera en el aire').orbRun(1);
     b.three().orbRun(2);
     b.stairs(3);
-    b.two().pit(3).three();
+    b.two().pit(3).three().sine().breakWall();
     b.coin(4, 3).spikes(4, 3).adv(14).orbRun(2);
     b.adv(4).finish();
     return b.done({
@@ -90,14 +102,14 @@ const PulsoLevels = (() => {
   const gravedadCero = () => {
     const b = new Builder();
     b.section(0x0b2545, 0x60a5fa).adv(14);
-    b.two().three().hop().stairs(2);
+    b.two().three().hop().stairs(2).low().breakWall();
     b.text(0, 6, 'Portal azul: el suelo es el techo').adv(4);
     b.portal(0, 'up').adv(10).mirror(true);
-    b.one().two().three();
+    b.one().two().low().three().breakWall();
     b.coin(3, 2).two();
     b.mirror(false).portal(0, 'down').adv(10);
     b.section(0x2a0b45, 0xc084fc).adv(4);
-    b.two().bridge().three();
+    b.two().bridge().sine().three().ambush();
     b.portal(0, 'up').adv(10).mirror(true);
     b.hop().two().pit(3).three().stairs(2);
     b.mirror(false).portal(0, 'down').adv(10);
@@ -114,7 +126,7 @@ const PulsoLevels = (() => {
     b.portal(0, 'up').adv(10).mirror(true);
     b.orbRun(2).coin(4, 3).spikes(4, 3).adv(12).two();
     b.mirror(false).portal(0, 'down').adv(10);
-    b.pit(4).three().two();
+    b.pit(4).three().squad().breakWall().two();
     b.adv(4).finish();
     return b.done({
       name: 'Gravedad Cero', difficulty: 'Media', stars: 2,
@@ -125,30 +137,38 @@ const PulsoLevels = (() => {
   const tormenta = () => {
     const b = new Builder();
     b.section(0x2a0a0a, 0xf87171).adv(14);
-    b.two().three().stairs(2).bridge();
+    b.two().three().ambush().breakWall().stairs(2).bridge().squad();
     b.text(0, 6, 'Nave: mantén pulsado para subir').adv(4);
     b.portal(0, 'ship').adv(10);
     b.section(0x0a1a3a, 0x38bdf8);
-    for (const r of [3, 3, 4, 3, 2, 3, 4, 3]) b.tunnel(r);
+    for (const r of [3, 3, 4]) b.tunnel(r);
+    b.adv(6).breakWall().adv(4);
+    for (const r of [3, 2, 3]) b.tunnel(r);
+    b.enemy(0, 5).adv(16);
+    for (const r of [4, 3]) b.tunnel(r);
     b.coin(4, 8).adv(8);
     b.portal(0, 'cube').adv(10);
     b.section(0x2a0a3a, 0xe879f9);
     b.two().three().orbRun(2).wall();
     b.text(0, 6, '¡Más rápido!').portal(0, 'fast').adv(14);
     b.two().two().three();
-    b.pit(3).three().hop();
+    b.pit(3).three().hop().breakWall().low();
     b.portal(0, 'normal').adv(10);
     b.portal(0, 'up').adv(10).mirror(true);
     b.two().three().coin(3, 2).two();
     b.mirror(false).portal(0, 'down').adv(10);
     b.section(0x0a3a2a, 0x4ade80);
     b.portal(0, 'ship').adv(10);
-    for (const r of [3, 4, 5, 4, 3, 2, 3, 4, 3]) b.tunnel(r, 4);
+    for (const r of [3, 4, 5, 4]) b.tunnel(r, 4);
+    b.enemy(0, 5, 'sine').adv(16);
+    for (const r of [3, 2, 3]) b.tunnel(r, 4);
+    b.adv(6).breakWall().adv(4);
+    b.tunnel(4, 4).tunnel(3, 4);
     b.coin(4, 2).adv(8);
     b.portal(0, 'cube').adv(10);
     b.section(0x3a2a0a, 0xfde047);
     b.portal(0, 'fast').adv(14);
-    b.three().two().bridge().orbRun(2);
+    b.three().two().bridge().squad().orbRun(2).breakWall();
     b.portal(0, 'normal').adv(10);
     b.adv(4).finish();
     return b.done({

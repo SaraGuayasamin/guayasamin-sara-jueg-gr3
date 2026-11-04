@@ -14,21 +14,30 @@ function solve(level, opts) {
   let nodes = 0;
   const inputs = [];
 
-  function dfs(state, depth, hold) {
+  // Solo se prueba disparar con algo destruible cerca, para no multiplicar la búsqueda.
+  const hasTarget = (s) => s.foes.some((f) => f.x > s.x && f.x - s.x < 700)
+    || level.walls.some((w) => !s.broken.includes(w.id) && w.x0 > s.x && w.x0 - s.x < 460);
+
+  function dfs(state, depth, hold, fire) {
     const s = S.clone(state);
     for (let i = 0; i < STEPS_PER_DECISION; i++) {
-      S.step(s, level, hold);
+      S.step(s, level, hold, fire && i === 0);
       if (s.x > maxX) maxX = s.x;
       if (s.dead) return false;
       if (s.won) return !opts.allCoins || s.coins === (1 << level.coins.length) - 1;
     }
-    const key = [depth, Math.round(s.y / 2), Math.round(s.vy / 25), s.g, s.mode, s.onGround, hold, s.coins, s.used.length].join();
+    // Buscando todas las estrellas, una ruta que deja atrás una sin recoger ya no sirve.
+    if (opts.allCoins && level.coins.some((c) => !(s.coins & (1 << c.i)) && s.x > c.cx + 60)) return false;
+    const key = [depth, Math.round(s.y / 2), Math.round(s.vy / 25), s.g, s.mode, s.onGround, hold, s.coins, s.used.length, Math.floor(s.soul * 2), s.broken.length, s.foes.length, s.shots.length].join();
     if (seen.has(key)) return false;
     seen.add(key);
     if (++nodes > opts.maxNodes) throw new Error('límite de búsqueda');
+    const canFire = !opts.noFire && s.soul >= 1 && hasTarget(s);
     for (const next of hold ? [true, false] : [false, true]) {
-      inputs[depth + 1] = next;
-      if (dfs(s, depth + 1, next)) return true;
+      for (const shoot of canFire ? [false, true] : [false]) {
+        inputs[depth + 1] = (next ? 1 : 0) | (shoot ? 2 : 0);
+        if (dfs(s, depth + 1, next, shoot)) return true;
+      }
     }
     return false;
   }
@@ -36,8 +45,8 @@ function solve(level, opts) {
   // El desfase retrasa la primera decisión para mover toda la rejilla de pulsaciones.
   const start = S.createState();
   for (let i = 0; i < opts.offset; i++) S.step(start, level, false);
-  inputs[0] = false;
-  const ok = dfs(start, 0, false);
+  inputs[0] = 0;
+  const ok = dfs(start, 0, false, false);
   return { ok, maxX, nodes, inputs: ok ? inputs.slice() : null };
 }
 
@@ -56,6 +65,10 @@ LEVELS.forEach((raw, idx) => {
   const c = solve(level, { offset: 0, allCoins: true, maxNodes: 3e6 });
   console.log(`  con todas las estrellas: ${c.ok ? 'GANA' : `FALLA, llega a casilla ${(c.maxX / S.TILE).toFixed(1)}`}`);
   if (!c.ok) failed = true;
+  // Los muros deben obligar a usar el poder: sin disparar, el nivel no se puede terminar.
+  const n = solve(level, { offset: 0, allCoins: false, noFire: true, maxNodes: 3e6 });
+  console.log(`  sin usar el poder: ${n.ok ? 'GANA (el poder no es necesario)' : `bloqueado en casilla ${(n.maxX / S.TILE).toFixed(1)}, correcto`}`);
+  if (n.ok) failed = true;
 });
 
 if (process.argv[2]) fs.writeFileSync(path.resolve(process.argv[2]), JSON.stringify({ stepsPerDecision: STEPS_PER_DECISION, replays }));

@@ -24,6 +24,18 @@ const PulsoSim = (() => {
   const PRESS_BUFFER = 0.1;
   const COYOTE = 0.06;
 
+  const SHOT_SPEED = 1150;
+  const SHOT_LIFE = 0.55;
+  const SHOT_HALF_H = 35;
+  const SOUL_MAX = 3;
+  const SOUL_RATE = 0.5;
+  const SOUL_ON_HIT = 0.5;
+  const SHOT_COOLDOWN = 0.22;
+  const ENEMY_SPEED = 240;
+  const ENEMY_LEAD = 900; // nacen fuera de pantalla: la alerta "!" avisa antes de que entren
+  const ENEMY_HALF_W = 22;
+  const ENEMY_HALF_H = 14;
+
   const rowTop = (r) => FLOOR_Y - (r + 1) * TILE;
   const rowBottom = (r) => FLOOR_Y - r * TILE;
 
@@ -48,11 +60,19 @@ const PulsoSim = (() => {
     let id = 0;
     const portals = [];
     const coins = [];
+    const walls = [];
+    const enemies = [];
     for (const e of raw.ents) {
       const x0 = e.x * TILE;
       if (e.t === 'block') {
         const b = { k: 'solid', x0, x1: x0 + e.w * TILE, y0: rowTop(e.y + e.h - 1), y1: rowBottom(e.y) };
         put(b.x0, b.x1, b);
+      } else if (e.t === 'wall') {
+        const w = { k: 'solid', breakable: true, id: walls.length, x0, x1: x0 + e.w * TILE, y0: rowTop(e.y + e.h - 1), y1: rowBottom(e.y) };
+        walls.push(w);
+        put(w.x0, w.x1, w);
+      } else if (e.t === 'enemy') {
+        enemies.push({ x: x0, cy: rowTop(e.y) + TILE / 2, kind: e.kind });
       } else if (e.t === 'spike') {
         const cx = x0 + TILE / 2;
         const y0 = e.dir > 0 ? rowBottom(e.y) - 26 : rowTop(e.y);
@@ -72,7 +92,9 @@ const PulsoSim = (() => {
       }
     }
     portals.sort((a, b) => a.x - b.x);
-    return { ...raw, cols, portals, coins, endX };
+    enemies.sort((a, b) => a.x - b.x);
+    enemies.forEach((e, i) => { e.id = i; });
+    return { ...raw, cols, portals, coins, walls, enemies, endX };
   }
 
   function createState() {
@@ -80,11 +102,73 @@ const PulsoSim = (() => {
       n: 0, t: 0, x: 0, y: FLOOR_Y - SIZE / 2, vy: 0, g: 1,
       mode: 'cube', speed: BASE_SPEED, onGround: true, hold: false,
       buf: 0, coy: 0, jumped: false, used: [], coins: 0, nextPortal: 0,
+      soul: SOUL_MAX, cd: 0, shots: [], foes: [], broken: [], nextEnemy: 0, boomX: 0, boomY: 0,
       dead: false, won: false, ev: [],
     };
   }
 
-  const clone = (s) => ({ ...s, used: s.used.slice(), ev: [] });
+  const clone = (s) => ({
+    ...s,
+    used: s.used.slice(),
+    broken: s.broken.slice(),
+    shots: s.shots.map((o) => ({ ...o })),
+    foes: s.foes.map((o) => ({ ...o })),
+    ev: [],
+  });
+
+  function boom(s, x, y) {
+    s.soul = Math.min(SOUL_MAX, s.soul + SOUL_ON_HIT);
+    s.boomX = x;
+    s.boomY = y;
+    s.ev.push('boom');
+  }
+
+  // El poder: una onda que avanza y destruye la primera nave o muro agrietado que toca.
+  function updatePower(s, level, fire) {
+    s.soul = Math.min(SOUL_MAX, s.soul + SOUL_RATE * DT);
+    s.cd = Math.max(0, s.cd - DT);
+    if (fire && s.cd === 0 && s.soul >= 1) {
+      s.soul -= 1;
+      s.cd = SHOT_COOLDOWN;
+      s.shots.push({ x: s.x + 20, y: s.y, life: SHOT_LIFE });
+      s.ev.push('shoot');
+    }
+
+    while (s.nextEnemy < level.enemies.length && level.enemies[s.nextEnemy].x <= s.x) {
+      const e = level.enemies[s.nextEnemy++];
+      s.foes.push({ id: e.id, kind: e.kind, x: s.x + ENEMY_LEAD, y: e.cy, cy: e.cy, t: 0 });
+    }
+    for (const f of s.foes) {
+      f.x -= ENEMY_SPEED * DT;
+      f.t += DT;
+      if (f.kind === 'sine') f.y = f.cy + 60 * Math.sin((2 * Math.PI * f.t) / (BEAT * 2));
+    }
+    s.foes = s.foes.filter((f) => f.x > s.x - 400);
+
+    s.shots = s.shots.filter((shot) => {
+      shot.x += SHOT_SPEED * DT;
+      shot.life -= DT;
+      if (shot.life <= 0) return false;
+      for (let i = 0; i < s.foes.length; i++) {
+        const f = s.foes[i];
+        if (Math.abs(f.x - shot.x) <= ENEMY_HALF_W + 14 && Math.abs(f.y - shot.y) <= ENEMY_HALF_H + SHOT_HALF_H) {
+          s.foes.splice(i, 1);
+          boom(s, f.x, f.y);
+          return false;
+        }
+      }
+      for (const o of level.cols[Math.floor(shot.x / TILE)] || []) {
+        if (o.k !== 'solid' || o.edge || shot.y + SHOT_HALF_H <= o.y0 || shot.y - SHOT_HALF_H >= o.y1) continue;
+        if (!o.breakable) return false;
+        if (!s.broken.includes(o.id)) {
+          s.broken.push(o.id);
+          boom(s, shot.x, shot.y);
+          return false;
+        }
+      }
+      return true;
+    });
+  }
 
   function applyPortal(s, kind) {
     if (kind === 'up' || kind === 'down') {
@@ -102,7 +186,7 @@ const PulsoSim = (() => {
     s.ev.push('portal');
   }
 
-  function step(s, level, hold) {
+  function step(s, level, hold, fire = false) {
     s.ev.length = 0;
     const edge = hold && !s.hold;
     s.hold = hold;
@@ -116,6 +200,8 @@ const PulsoSim = (() => {
       if (level.portals[s.nextPortal].x > prevX) applyPortal(s, level.portals[s.nextPortal].kind);
       s.nextPortal++;
     }
+
+    updatePower(s, level, fire);
 
     const half = SIZE / 2;
     const near = [];
@@ -172,7 +258,7 @@ const PulsoSim = (() => {
     const bottom = () => s.y + half;
 
     for (const o of near) {
-      if (o.k !== 'solid') continue;
+      if (o.k !== 'solid' || (o.breakable && s.broken.includes(o.id))) continue;
       if (s.x + half <= o.x0 || s.x - half >= o.x1 || bottom() <= o.y0 || top() >= o.y1) continue;
       const penTop = bottom() - o.y0;
       const penBottom = o.y1 - top();
@@ -207,12 +293,16 @@ const PulsoSim = (() => {
       if (o.k === 'hazard' && s.x + hz > o.x0 && s.x - hz < o.x1 && s.y + hz > o.y0 && s.y - hz < o.y1) s.dead = true;
     }
 
+    for (const f of s.foes) {
+      if (Math.abs(f.x - s.x) < hz + ENEMY_HALF_W && Math.abs(f.y - s.y) < hz + ENEMY_HALF_H) s.dead = true;
+    }
+
     if (s.y > FLOOR_Y + 120 || s.y < CEIL_Y - 120) s.dead = true;
     if (!s.dead && s.x >= level.endX) s.won = true;
     return s;
   }
 
-  return { TILE, FLOOR_Y, CEIL_Y, BEAT, BPM, BASE_SPEED, DT, SIZE, rowTop, rowBottom, prepare, createState, clone, step };
+  return { TILE, FLOOR_Y, CEIL_Y, BEAT, BPM, BASE_SPEED, DT, SIZE, SOUL_MAX, rowTop, rowBottom, prepare, createState, clone, step };
 })();
 
 if (typeof module !== 'undefined') module.exports = PulsoSim;
