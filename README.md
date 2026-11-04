@@ -5,7 +5,7 @@ Juego de ritmo y reflejos al estilo *Geometry Dash*, hecho con **Phaser 3** para
 
 **Autora:** Sara Lizbeth Guayasamin Nacimba
 
-**Jugar:** https://2026b-sof-jueg-gr3.github.io/guayasamin-sara-jueg-gr3/
+**Jugar:** https://saraguayasamin.github.io/guayasamin-sara-jueg-gr3/
 
 ## Cómo se juega
 
