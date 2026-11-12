@@ -1,22 +1,624 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Mi Juego Phaser - ISWD823</title>
-    <style>
-        html, body { height: 100%; }
-        body { margin: 0; display: flex; justify-content: center; align-items: center; background: #2d2d2d; overflow: hidden; touch-action: none; }
-        #juego { width: 100%; height: 100%; }
-        canvas { display: block; }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pulso Neón — Corre al ritmo. Devuélvele el pulso a la ciudad.</title>
+<meta name="description" content="Pulso Neón: un juego de ritmo y reflejos hecho con Phaser 3. Lumi corre a 128 BPM para devolverle el pulso a una ciudad silenciada por la Estática.">
+<meta property="og:title" content="Pulso Neón">
+<meta property="og:description" content="Salta al ritmo. Muere. Repite. Presume. Juega gratis en tu navegador.">
+<meta name="theme-color" content="#0d0b2b">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{
+  --noche:#0d0b2b; --noche2:#141045; --indigo:#1e1b4b; --tinta:#c7d2fe; --tenue:#8b8fc7;
+  --cian:#22d3ee; --rosa:#f472b6; --oro:#facc15; --rojo:#ff2d55; --verde:#4ade80; --violeta:#7c3aed;
+  --beat:468.75ms; /* 128 BPM, el mismo pulso del juego */
+  --pixel:"Press Start 2P", ui-monospace, monospace;
+  --texto:"Chakra Petch", "Segoe UI", system-ui, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--noche);color:var(--tinta);font-family:var(--texto);font-size:18px;line-height:1.6;overflow-x:hidden}
+a{color:inherit}
+img,canvas{display:block}
+
+/* Fondo: estrellas + rejilla synthwave */
+.cielo{position:fixed;inset:0;z-index:-2;background:
+  radial-gradient(1px 1px at 12% 18%,#fff8 50%,transparent 51%),
+  radial-gradient(1px 1px at 72% 9%,#fff6 50%,transparent 51%),
+  radial-gradient(1.5px 1.5px at 40% 33%,#fff7 50%,transparent 51%),
+  radial-gradient(1px 1px at 88% 41%,#fff5 50%,transparent 51%),
+  radial-gradient(1px 1px at 22% 62%,#fff5 50%,transparent 51%),
+  radial-gradient(1.5px 1.5px at 60% 76%,#fff6 50%,transparent 51%),
+  radial-gradient(1px 1px at 93% 88%,#fff4 50%,transparent 51%),
+  radial-gradient(ellipse at 50% -10%,#2a1f6b 0%,var(--noche) 60%)}
+.scan{position:fixed;inset:0;z-index:50;pointer-events:none;background:repeating-linear-gradient(0deg,#0000 0 2px,#0000000f 2px 3px);mix-blend-mode:multiply}
+
+/* Barra superior */
+nav{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:24px;padding:14px clamp(16px,4vw,48px);background:#0d0b2bcc;backdrop-filter:blur(8px);border-bottom:1px solid #22d3ee22}
+.marca{font-family:var(--pixel);font-size:13px;color:#fff;text-decoration:none;letter-spacing:1px;display:flex;align-items:center;gap:10px}
+.marca i{width:10px;height:10px;border-radius:50%;background:var(--cian);box-shadow:0 0 10px var(--cian);animation:latido var(--beat) infinite}
+nav ul{display:flex;gap:20px;list-style:none;margin-left:auto}
+nav ul a{text-decoration:none;font-size:15px;color:var(--tenue);transition:color .2s}
+nav ul a:hover{color:#fff}
+.nav-jugar{font-family:var(--pixel);font-size:11px;text-decoration:none;color:var(--noche);background:var(--oro);padding:10px 14px;border-radius:4px;box-shadow:0 3px 0 #a16207}
+@media (max-width:860px){nav ul{display:none}.nav-jugar{margin-left:auto}}
+
+/* Portada */
+.portada{min-height:min(calc(100vh - 60px),860px);display:grid;grid-template-columns:1.05fr 1fr;align-items:center;gap:clamp(24px,4vw,64px);padding:clamp(32px,6vw,80px) clamp(16px,5vw,72px) 40px;max-width:1320px;margin:0 auto}
+.insert{font-family:var(--pixel);font-size:11px;color:var(--rosa);letter-spacing:2px;margin-bottom:18px}
+.insert span{animation:parpadeo calc(var(--beat)*2) steps(1) infinite}
+h1{font-family:var(--pixel);font-weight:400;font-size:clamp(38px,6.4vw,84px);line-height:1.05;color:#fff;letter-spacing:-1px;
+  text-shadow:0 0 0 #fff,3px 3px 0 var(--violeta),0 0 24px #22d3ee99,0 0 60px #22d3ee55;animation:titulo var(--beat) infinite}
+h1 em{font-style:normal;color:var(--cian);display:block}
+.lema{font-family:var(--pixel);font-size:clamp(10px,1.1vw,13px);color:var(--oro);margin:22px 0 22px;line-height:2}
+.logline{font-size:clamp(19px,1.7vw,23px);color:#fff;max-width:36ch;border-left:3px solid var(--rosa);padding-left:18px}
+.logline b{color:var(--cian);font-weight:700}
+.acciones{display:flex;flex-wrap:wrap;align-items:center;gap:18px;margin-top:34px}
+.jugar{position:relative;display:inline-flex;align-items:center;gap:16px;font-family:var(--pixel);font-size:clamp(20px,2.4vw,30px);color:var(--noche);text-decoration:none;
+  background:linear-gradient(180deg,#fde68a,var(--oro));padding:24px 40px;border-radius:6px;box-shadow:0 7px 0 #a16207,0 0 40px #facc1566;transition:transform .08s,box-shadow .08s}
+.jugar:hover{transform:translateY(-2px);box-shadow:0 9px 0 #a16207,0 0 70px #facc15aa}
+.jugar:active{transform:translateY(6px);box-shadow:0 1px 0 #a16207,0 0 40px #facc1566}
+.jugar::after{content:"";position:absolute;inset:-6px;border:2px solid var(--oro);border-radius:10px;opacity:.0;animation:onda calc(var(--beat)*2) infinite}
+.jugar svg{width:.9em;height:.9em}
+.secundario{font-weight:700;font-size:16px;color:#fff;text-decoration:none;padding:14px 20px;border:2px solid #f472b688;border-radius:6px;transition:.2s}
+.secundario:hover{border-color:var(--rosa);background:#f472b61a}
+.nota{font-size:14px;color:var(--tenue);margin-top:16px}
+
+.pantalla{position:relative;border-radius:14px;padding:12px;background:linear-gradient(145deg,#2a1f6b,#0f0c33);box-shadow:0 0 0 2px #22d3ee44,0 30px 80px #000a,0 0 80px #7c3aed44}
+.pantalla canvas{width:100%;height:auto;aspect-ratio:4/3;border-radius:8px;image-rendering:pixelated;background:#0d0b2b}
+.pantalla .hud{position:absolute;top:22px;left:24px;right:24px;display:flex;justify-content:space-between;font-family:var(--pixel);font-size:10px;color:#fff;pointer-events:none}
+.burbuja{position:absolute;bottom:-18px;right:18px;font-family:var(--pixel);font-size:10px;line-height:1.7;background:var(--rosa);color:var(--noche);padding:10px 14px;border-radius:4px;box-shadow:4px 4px 0 var(--violeta);max-width:260px;transition:opacity .25s}
+
+/* Secciones */
+section{padding:clamp(64px,9vw,120px) clamp(16px,5vw,72px);max-width:1320px;margin:0 auto}
+.etiqueta{font-family:var(--pixel);font-size:11px;letter-spacing:2px;color:var(--cian);margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.etiqueta::before{content:"";width:28px;height:2px;background:currentColor;box-shadow:0 0 8px currentColor}
+h2{font-family:var(--pixel);font-weight:400;font-size:clamp(22px,3vw,36px);line-height:1.35;color:#fff;margin-bottom:24px;max-width:24ch}
+h3{font-family:var(--pixel);font-weight:400;font-size:14px;line-height:1.6;color:#fff;margin-bottom:12px}
+.intro{font-size:20px;max-width:62ch;margin-bottom:40px}
+.intro strong{color:#fff}
+
+/* Historia en capítulos */
+.cronica{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;counter-reset:cap}
+.capitulo{position:relative;padding:30px 26px 26px;background:linear-gradient(180deg,#1e1b4bcc,#14104588);border:1px solid #ffffff14;border-radius:10px;counter-increment:cap}
+.capitulo::before{content:"0" counter(cap);position:absolute;top:-14px;left:22px;font-family:var(--pixel);font-size:12px;color:var(--noche);background:var(--cian);padding:6px 9px;border-radius:3px}
+.capitulo:nth-child(2)::before{background:var(--rosa)}
+.capitulo:nth-child(3)::before{background:var(--oro)}
+.capitulo p{font-size:17px}
+.capitulo p+p{margin-top:12px}
+.cita{margin-top:40px;font-family:var(--pixel);font-size:clamp(12px,1.4vw,15px);line-height:2;color:#fff;text-align:center;padding:28px;border-top:1px dashed #22d3ee55;border-bottom:1px dashed #22d3ee55}
+.cita span{color:var(--rosa)}
+
+/* Resonancia ludonarrativa */
+.resonancia{display:grid;gap:14px}
+.fila{display:grid;grid-template-columns:1fr 32px 1fr 32px 1fr;align-items:stretch;gap:0}
+.celda{padding:20px 22px;background:#14104599;border:1px solid #ffffff12;border-radius:8px}
+.celda small{display:none;font-family:var(--pixel);font-size:9px;letter-spacing:1px;margin-bottom:10px}
+.celda.m small{color:var(--cian)} .celda.n small{color:var(--rosa)} .celda.a small{color:var(--oro)}
+.celda p{font-size:16px;color:#fff}
+.flecha{display:grid;place-items:center;color:#ffffff44;font-family:var(--pixel);font-size:12px}
+.cabecera-fila{display:grid;grid-template-columns:1fr 32px 1fr 32px 1fr;font-family:var(--pixel);font-size:10px;letter-spacing:1px;padding:0 4px 4px}
+.cabecera-fila span:nth-child(1){color:var(--cian)}.cabecera-fila span:nth-child(3){color:var(--rosa)}.cabecera-fila span:nth-child(5){color:var(--oro)}
+@media (max-width:900px){.fila,.cabecera-fila{grid-template-columns:1fr}.flecha,.cabecera-fila{display:none}.fila{gap:8px;padding-bottom:18px;border-bottom:1px dashed #ffffff1a}.celda small{display:block}}
+.veredicto{margin-top:34px;padding:26px 30px;border-radius:10px;background:linear-gradient(90deg,#22d3ee1f,#f472b61f);border:1px solid #22d3ee44;font-size:19px;color:#fff}
+
+/* Características */
+.rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+.carta{padding:26px;border-radius:10px;background:#14104599;border:1px solid #ffffff12;transition:transform .2s,border-color .2s}
+.carta:hover{transform:translateY(-4px);border-color:#22d3ee66}
+.icono{width:44px;height:44px;margin-bottom:16px;border-radius:8px;display:grid;place-items:center;background:#22d3ee1a;border:1px solid #22d3ee55}
+.icono svg{width:24px;height:24px}
+.carta p{font-size:16px}
+
+/* Niveles */
+.niveles{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.nivel{position:relative;overflow:hidden;border-radius:12px;padding:28px 26px 26px;min-height:300px;display:flex;flex-direction:column;border:1px solid #ffffff1a}
+.nivel::after{content:"";position:absolute;left:0;right:0;bottom:0;height:90px;background:repeating-linear-gradient(90deg,#ffffff10 0 1px,transparent 1px 40px),linear-gradient(0deg,#00000066,transparent);pointer-events:none}
+.nivel .dif{font-family:var(--pixel);font-size:10px;letter-spacing:1px;margin-bottom:14px}
+.nivel .est{margin-top:auto;font-family:var(--pixel);font-size:16px;letter-spacing:4px;position:relative;z-index:1}
+.nivel p{font-size:16px;color:#e0e7ff;margin-bottom:12px}
+.nivel .anade{font-size:14px;color:#ffffffaa}
+.n1{background:linear-gradient(160deg,#141045,#0f2a4a)}.n1 .dif,.n1 .est{color:#22d3ee}
+.n2{background:linear-gradient(160deg,#0b2545,#2a0b45)}.n2 .dif,.n2 .est{color:#c084fc}
+.n3{background:linear-gradient(160deg,#2a0a0a,#2a0a3a)}.n3 .dif,.n3 .est{color:#f87171}
+
+/* Controles */
+.controles{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.control{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;background:#14104599;border:1px solid #ffffff12;border-radius:8px;font-size:16px;color:#fff}
+.teclas{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+kbd{font-family:var(--pixel);font-size:10px;color:var(--noche);background:var(--tinta);padding:7px 8px;border-radius:4px;box-shadow:0 3px 0 #6366f1;white-space:nowrap}
+
+/* Ingeniería */
+.ingenieria{display:grid;grid-template-columns:1fr 1.1fr;gap:clamp(24px,4vw,56px);align-items:start}
+.lista-ing{list-style:none;display:grid;gap:18px}
+.lista-ing li{padding-left:34px;position:relative;font-size:17px}
+.lista-ing li::before{content:"▶";position:absolute;left:0;top:1px;color:var(--verde);font-size:14px}
+.lista-ing b{color:#fff}
+.terminal{border-radius:10px;overflow:hidden;background:#07061a;border:1px solid #4ade8044;box-shadow:0 0 50px #4ade801a}
+.terminal header{display:flex;gap:8px;align-items:center;padding:12px 16px;background:#110f2e;font-family:var(--pixel);font-size:9px;color:var(--tenue)}
+.terminal header i{width:10px;height:10px;border-radius:50%;background:#ff5f57}.terminal header i:nth-child(2){background:#febc2e}.terminal header i:nth-child(3){background:#28c840;margin-right:8px}
+pre{padding:18px 20px;overflow-x:auto;font:14px/1.7 ui-monospace,"Cascadia Code",Consolas,monospace;color:#d1fae5}
+pre .c{color:#6b7280}pre .k{color:#f472b6}pre .s{color:#facc15}pre .ok{color:#4ade80}
+
+/* Reglas del mundo real */
+.legal{display:grid;grid-template-columns:auto 1fr;gap:clamp(24px,4vw,56px);align-items:start}
+.sello{width:220px;border:4px solid #fff;border-radius:6px;background:#fff;color:#000;text-align:center;box-shadow:0 0 0 4px var(--noche),0 0 0 6px var(--oro),0 0 50px #facc1544}
+.sello .letra{font-family:var(--pixel);font-size:54px;line-height:1;padding:26px 0 14px;background:#000;color:#fff}
+.sello .letra small{display:block;font-size:10px;margin-top:12px;letter-spacing:1px;color:var(--oro)}
+.sello .pie{font-family:var(--pixel);font-size:9px;line-height:1.7;padding:12px 10px}
+.descriptores{display:grid;gap:12px;margin:8px 0 28px}
+.descriptor{display:grid;grid-template-columns:180px 1fr;gap:16px;padding:14px 18px;border-left:3px solid var(--oro);background:#14104599;border-radius:0 8px 8px 0;font-size:16px}
+.descriptor b{font-family:var(--pixel);font-size:10px;color:var(--oro);line-height:1.8}
+@media (max-width:760px){.legal{grid-template-columns:1fr}.descriptor{grid-template-columns:1fr}}
+.avisos{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.aviso{padding:20px;border-radius:8px;background:#14104599;border:1px solid #ffffff12;font-size:15px}
+.aviso h3{font-size:11px;color:var(--rosa)}
+.descargo{margin-top:18px;font-size:13px;color:var(--tenue)}
+
+/* Muro de honor */
+.muro{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.placa{position:relative;padding:24px 22px 20px;border-radius:6px;background:linear-gradient(180deg,#2a1f6b,#1a1450);border:2px solid #facc1555;box-shadow:inset 0 0 0 4px #0d0b2b,inset 0 0 0 5px #facc1533}
+.placa .rol{font-family:var(--pixel);font-size:9px;letter-spacing:1px;color:var(--oro);margin-bottom:10px}
+.placa .quien{font-size:20px;font-weight:700;color:#fff;line-height:1.3}
+.placa p{font-size:15px;margin-top:8px}
+.licencia{display:inline-block;margin-top:12px;font-family:var(--pixel);font-size:9px;padding:6px 8px;border-radius:3px;background:#4ade801f;color:var(--verde);border:1px solid #4ade8055}
+.placa a{color:var(--cian)}
+
+/* Hogar indie */
+.hogar{display:grid;grid-template-columns:1.2fr 1fr;gap:clamp(24px,4vw,56px);align-items:center;padding:clamp(28px,4vw,48px);border-radius:16px;background:linear-gradient(135deg,#4ade801a,#7c3aed22);border:1px solid #4ade8055}
+.hogar .plataformas{display:grid;gap:10px}
+.plat{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;border-radius:8px;background:#0d0b2bcc;border:1px solid #ffffff14;font-size:16px}
+.plat.elegida{border-color:#fa5c5c;box-shadow:0 0 30px #fa5c5c33}
+.plat b{color:#fff}.plat small{font-family:var(--pixel);font-size:9px;color:var(--tenue)}
+.plat.elegida small{color:#fa5c5c}
+.boton-itch{display:inline-flex;align-items:center;gap:12px;margin-top:26px;font-family:var(--pixel);font-size:13px;color:#fff;text-decoration:none;background:#fa5c5c;padding:16px 22px;border-radius:6px;box-shadow:0 5px 0 #a33a3a}
+@media (max-width:860px){.hogar,.ingenieria{grid-template-columns:1fr}}
+
+/* Cierre */
+.final{text-align:center;padding-bottom:140px}
+.final h2{margin:0 auto 18px;max-width:none}
+.final p{margin:0 auto 40px;max-width:52ch;font-size:19px}
+footer{border-top:1px solid #ffffff12;padding:28px clamp(16px,5vw,72px);display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between;font-size:14px;color:var(--tenue)}
+footer a{color:var(--cian)}
+
+@media (max-width:980px){.portada{grid-template-columns:1fr}.cronica,.niveles{grid-template-columns:1fr}}
+
+/* Animaciones al ritmo */
+@keyframes latido{0%{transform:scale(1.5);opacity:1}60%,100%{transform:scale(1);opacity:.7}}
+@keyframes titulo{0%{transform:scale(1.025)}30%,100%{transform:scale(1)}}
+@keyframes parpadeo{50%{opacity:0}}
+@keyframes onda{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(1.18)}}
+.revelar{opacity:0;transform:translateY(24px);transition:opacity .6s,transform .6s}
+.revelar.visto{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.revelar{opacity:1;transform:none}html{scroll-behavior:auto}}
+</style>
 </head>
 <body>
-    <div id="juego"></div>
-    <script src="sim.js"></script>
-    <script src="levels.js"></script>
-    <script src="audio.js"></script>
-    <script src="game.js"></script>
+<div class="cielo" aria-hidden="true"></div>
+<div class="scan" aria-hidden="true"></div>
+
+<nav aria-label="Principal">
+  <a class="marca" href="#inicio"><i></i>PULSO NEÓN</a>
+  <ul>
+    <li><a href="#historia">Historia</a></li>
+    <li><a href="#por-que">Por qué funciona</a></li>
+    <li><a href="#niveles">Niveles</a></li>
+    <li><a href="#reglas">Clasificación</a></li>
+    <li><a href="#creditos">Muro de Honor</a></li>
+  </ul>
+  <a class="nav-jugar" href="juego/">JUGAR ▶</a>
+</nav>
+
+<main>
+<!-- ===================== PORTADA ===================== -->
+<header class="portada" id="inicio">
+  <div>
+    <p class="insert">◆ PLAYER 1 · <span>PRESIONA JUGAR</span></p>
+    <h1>PULSO<em>NEÓN</em></h1>
+    <p class="lema">SALTA AL RITMO. MUERE. REPITE. PRESUME.</p>
+    <p class="logline">Una chispa de neón llamada <b>Lumi</b> no puede dejar de correr: ella <b>es</b> el último latido de una ciudad que la Estática dejó en silencio. Tiene 128 pulsos por minuto, tres cargas de alma y ninguna excusa para detenerse.</p>
+    <div class="acciones">
+      <a class="jugar" href="juego/">
+        <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 0h2v1h2v1h2v1h2v2h-2v1h-2v1h-2v1h-2z" fill="currentColor"/></svg>
+        JUGAR
+      </a>
+      <a class="secundario" href="#historia">Conoce a Lumi ↓</a>
+    </div>
+    <p class="nota">Gratis · Publicado en GitHub Pages · En el navegador · Teclado, ratón o pantalla táctil · Sin instalar nada</p>
+  </div>
+
+  <div class="pantalla">
+    <canvas id="escena" width="480" height="360" aria-label="Animación: Lumi corre y salta pinchos al ritmo de la música"></canvas>
+    <div class="hud" aria-hidden="true"><span id="hud-pct">0%</span><span>INTENTO <b id="hud-int">1</b></span></div>
+    <div class="burbuja" id="burbuja" aria-live="polite">¡Calentando motores!</div>
+  </div>
+</header>
+
+<!-- ===================== MISIÓN 1: EL ALMA ===================== -->
+<section id="historia" class="revelar">
+  <p class="etiqueta">EL ALMA DEL JUEGO</p>
+  <h2>Hubo una ciudad que latía a 128 BPM.</h2>
+  <p class="intro">Se llamaba <strong>Metrónoma</strong>. Sus semáforos parpadeaban a tiempo, sus puentes se encendían en cada compás y hasta los letreros bailaban. Hasta que llegó la <strong>Estática</strong>.</p>
+
+  <div class="cronica">
+    <article class="capitulo">
+      <h3>El silencio</h3>
+      <p>La Estática no destruye: <em>apaga</em>. Donde pasa, el neón se vuelve gris, los caminos se llenan de pinchos y los muros se agrietan de ruido.</p>
+      <p>Su ejército, el <strong>Enjambre Mudo</strong>, son naves rojas que aparecen sin aviso para cortar el último ritmo que queda.</p>
+    </article>
+    <article class="capitulo">
+      <h3>La chispa</h3>
+      <p><strong>Lumi</strong> nació del último latido de la ciudad. Por eso no puede parar: si deja de correr, el pulso se apaga con ella.</p>
+      <p>Dentro lleva tres <strong>cargas de alma</strong>. Cada una se convierte en una onda de energía capaz de romper un muro de estática o derribar una nave. Y se recargan con el propio ritmo.</p>
+    </article>
+    <article class="capitulo">
+      <h3>El eco</h3>
+      <p>Cuando Lumi cae, no muere: se convierte en eco y vuelve al inicio del camino, <em>recordando</em> dónde falló.</p>
+      <p>Cada intento es un ensayo. Cada ensayo la acerca a la Torre de la Tormenta, donde la Estática guarda el corazón robado de Metrónoma.</p>
+    </article>
+  </div>
+  <p class="cita">“No necesitas ser perfecta. <span>Necesitas estar a tiempo.</span>”<br>— Lumi, intento n.º 47</p>
+</section>
+
+<section id="por-que" class="revelar">
+  <p class="etiqueta">RESONANCIA LUDONARRATIVA</p>
+  <h2>Lo que haces con las manos es lo que cuenta la historia.</h2>
+  <p class="intro">El taller pregunta cómo hacer que aprender sea divertido y no un castigo. Pulso Neón responde con su mecánica principal: <strong>en este juego equivocarse es la forma de avanzar</strong>, y la historia explica por qué.</p>
+
+  <div class="resonancia">
+    <div class="cabecera-fila" aria-hidden="true"><span>LA MECÁNICA</span><span></span><span>LA HISTORIA</span><span></span><span>LO QUE APRENDES</span></div>
+    <div class="fila">
+      <div class="celda m"><small>LA MECÁNICA</small><p>Lumi corre sola: tú solo decides <em>cuándo</em> saltar.</p></div>
+      <div class="flecha">→</div>
+      <div class="celda n"><small>LA HISTORIA</small><p>Ella es el pulso de la ciudad; detenerse es apagarse.</p></div>
+      <div class="flecha">→</div>
+      <div class="celda a"><small>LO QUE APRENDES</small><p><b>Sincronía rítmica.</b> Un pulso equivale exactamente a 4 casillas: los obstáculos caen en el compás y aprendes a <em>escuchar</em> antes de reaccionar.</p></div>
+    </div>
+    <div class="fila">
+      <div class="celda m"><small>LA MECÁNICA</small><p>Un golpe y vuelves al inicio, al instante, sin pantallas de castigo.</p></div>
+      <div class="flecha">→</div>
+      <div class="celda n"><small>LA HISTORIA</small><p>Lumi no muere: se vuelve eco y recuerda dónde falló.</p></div>
+      <div class="flecha">→</div>
+      <div class="celda a"><small>LO QUE APRENDES</small><p><b>Ensayo y error con retroalimentación inmediata.</b> El ciclo intentar → fallar → ajustar es el mismo de depurar código o practicar un instrumento.</p></div>
+    </div>
+    <div class="fila">
+      <div class="celda m"><small>LA MECÁNICA</small><p>Solo 3 cargas de poder: ¿esquivas la nave o la derribas?</p></div>
+      <div class="flecha">→</div>
+      <div class="celda n"><small>LA HISTORIA</small><p>El alma de Lumi es finita y se recarga con el ritmo.</p></div>
+      <div class="flecha">→</div>
+      <div class="celda a"><small>LO QUE APRENDES</small><p><b>Decidir con recursos limitados y bajo presión.</b> Gastar la carga ahora puede dejarte sin ella frente al muro que sí exige romperse.</p></div>
+    </div>
+    <div class="fila">
+      <div class="celda m"><small>LA MECÁNICA</small><p>Modo práctica con puntos de control y frases de ánimo tras cada caída.</p></div>
+      <div class="flecha">→</div>
+      <div class="celda n"><small>LA HISTORIA</small><p>Los ecos de Lumi entrenan antes de enfrentar la Tormenta.</p></div>
+      <div class="flecha">→</div>
+      <div class="celda a"><small>LO QUE APRENDES</small><p><b>Aprendizaje por andamiaje.</b> Primero dominas tramo por tramo; luego te atreves sin red. El progreso se mide en porcentaje, no en fracasos.</p></div>
+    </div>
+  </div>
+  <p class="veredicto">El contador de intentos no es una vergüenza: es un trofeo. Cuando por fin llegas al 100 %, sabes exactamente cuánto practicaste para lograrlo. <b>Eso es aprender.</b></p>
+</section>
+
+<section id="caracteristicas" class="revelar">
+  <p class="etiqueta">CARACTERÍSTICAS</p>
+  <h2>Lo que te espera al otro lado del botón.</h2>
+  <div class="rejilla">
+    <article class="carta">
+      <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><path d="M2 12h4l3-8 4 16 3-8h6"/></svg></div>
+      <h3>Ritmo a 128 BPM</h3>
+      <p>Música y efectos sintetizados en vivo. Cada salto encaja con el compás.</p>
+    </article>
+    <article class="carta">
+      <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></div>
+      <h3>Poder del alma</h3>
+      <p>Una onda de energía que rompe muros agrietados y derriba naves. Tres cargas que se recuperan solas.</p>
+    </article>
+    <article class="carta">
+      <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><path d="M3 12l8-6v12zM13 6h3l5 6-5 6h-3"/></svg></div>
+      <h3>El Enjambre Mudo</h3>
+      <p>Naves enemigas avisadas por una alerta “!”. Esquívalas o derríbalas: tú decides.</p>
+    </article>
+    <article class="carta">
+      <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><path d="M12 3l2.6 5.5 6 .8-4.4 4.1 1.1 6L12 16.6 6.7 19.4l1.1-6L3.4 9.3l6-.8z"/></svg></div>
+      <h3>3 estrellas por nivel</h3>
+      <p>Estrellas escondidas en rutas arriesgadas. Tu récord y tus estrellas se guardan en el navegador.</p>
+    </article>
+    <article class="carta">
+      <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg></div>
+      <h3>Modo práctica</h3>
+      <p>Puntos de control para aprender cada tramo antes de intentarlo de un tirón.</p>
+    </article>
+    <article class="carta">
+      <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg></div>
+      <h3>Juega donde sea</h3>
+      <p>Teclado, ratón o pantalla táctil con botón de PODER. Funciona en el móvil.</p>
+    </article>
+  </div>
+</section>
+
+<section id="niveles" class="revelar">
+  <p class="etiqueta">EL MAPA DE METRÓNOMA</p>
+  <h2>Tres barrios. Un solo pulso.</h2>
+  <div class="niveles">
+    <article class="nivel n1">
+      <p class="dif">01 · FÁCIL</p>
+      <h3>Primer Pulso</h3>
+      <p>El barrio donde Lumi despierta. La Estática apenas empieza a sembrar pinchos; aquí aprendes a saltar y a usar tu alma.</p>
+      <p class="anade">Pinchos · bloques · huecos · trampolines · esferas</p>
+      <p class="est">★☆☆</p>
+    </article>
+    <article class="nivel n2">
+      <p class="dif">02 · MEDIA</p>
+      <h3>Gravedad Cero</h3>
+      <p>Un distrito donde el ruido confundió al cielo con el suelo. Los portales azules te ponen de cabeza y las esferas verdes te dan la vuelta.</p>
+      <p class="anade">Portales y esferas de gravedad invertida</p>
+      <p class="est">★★☆</p>
+    </article>
+    <article class="nivel n3">
+      <p class="dif">03 · DIFÍCIL</p>
+      <h3>Tormenta</h3>
+      <p>La torre donde la Estática guarda el corazón de la ciudad. Lumi sube a su nave y atraviesa túneles a toda velocidad.</p>
+      <p class="anade">Nave · túneles · portales de velocidad</p>
+      <p class="est">★★★</p>
+    </article>
+  </div>
+</section>
+
+<section id="controles" class="revelar">
+  <p class="etiqueta">CONTROLES</p>
+  <h2>Dos botones. Infinitos intentos.</h2>
+  <div class="controles">
+    <div class="control">Saltar / subir con la nave<span class="teclas"><kbd>ESPACIO</kbd><kbd>↑</kbd><kbd>W</kbd><kbd>CLIC</kbd></span></div>
+    <div class="control">Lanzar el poder<span class="teclas"><kbd>X</kbd><kbd>Z</kbd><kbd>F</kbd><kbd>CLIC DER.</kbd></span></div>
+    <div class="control">Elegir nivel<span class="teclas"><kbd>←</kbd><kbd>→</kbd></span></div>
+    <div class="control">Modo práctica (en el menú)<span class="teclas"><kbd>P</kbd></span></div>
+    <div class="control">Pausa<span class="teclas"><kbd>ESC</kbd><kbd>P</kbd></span></div>
+    <div class="control">Sonido<span class="teclas"><kbd>M</kbd></span></div>
+  </div>
+</section>
+
+<section id="ingenieria" class="revelar">
+  <p class="etiqueta">HECHO CON INGENIERÍA</p>
+  <h2>Ningún nivel es imposible. Un robot lo demostró.</h2>
+  <div class="ingenieria">
+    <ul class="lista-ing">
+      <li><b>Física determinista.</b> La simulación corre a paso fijo y sin dependencias: el mismo salto en el mismo pulso da siempre el mismo resultado. Si fallas, fue el tiempo, no la suerte.</li>
+      <li><b>Un bot que juega por ti.</b> Antes de cada publicación, un programa recorre todos los niveles y comprueba que se pueden terminar, que todas las estrellas son alcanzables y que los muros realmente exigen usar el poder.</li>
+      <li><b>Publicación automática (CI/CD).</b> Cada <code>push</code> a <code>main</code> pasa por el bot en GitHub Actions; si todo está bien, el sitio se publica solo en GitHub Pages en un par de minutos.</li>
+      <li><b>Sin assets de terceros.</b> El arte de píxeles se dibuja con código y la música se sintetiza con Web Audio.</li>
+    </ul>
+    <div class="terminal" role="img" aria-label="Salida del bot de verificación de niveles">
+      <header><i></i><i></i><i></i>.github/workflows/desplegar-pages.yml</header>
+<pre><span class="c"># Cada push a main: verificar y publicar</span>
+<span class="k">jobs:</span>
+  <span class="k">verificar:</span>
+    <span class="k">run:</span> node tests/verificar-niveles.js
+  <span class="k">desplegar:</span>
+    <span class="k">needs:</span> verificar
+    <span class="k">uses:</span> <span class="s">actions/deploy-pages@v4</span>
+    <span class="k">path:</span> _site   <span class="c"># landing + juego/</span>
+
+<span class="c">$ node tests/verificar-niveles.js</span>
+  con todas las estrellas: <span class="ok">GANA</span>
+  sin usar el poder: bloqueado, <span class="ok">correcto</span>
+<span class="ok">Todos los niveles se pueden completar.</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== MISIÓN 2: REGLAS DEL MUNDO REAL ===================== -->
+<section id="reglas" class="revelar">
+  <p class="etiqueta">LAS REGLAS DEL MUNDO REAL</p>
+  <h2>Clasificación oficial(mente inventada).</h2>
+  <div class="legal">
+    <div class="sello" aria-label="Clasificación P-128: apto para cualquier humano con pulso">
+      <div class="letra">P<small>128 BPM</small></div>
+      <div class="pie">APTO PARA CUALQUIER HUMANO CON PULSO</div>
+    </div>
+    <div>
+      <div class="descriptores">
+        <div class="descriptor"><b>VIOLENCIA DE FANTASÍA LEVE</b><span>Dirigida exclusivamente a naves de la Estática y a muros que, siendo honestos, ya estaban agrietados.</span></div>
+        <div class="descriptor"><b>FRUSTRACIÓN RÍTMICA</b><span>Moderada. Puede provocar frases como “¡estaba ahí mismo!” a volumen alto. El juego te dará la razón.</span></div>
+        <div class="descriptor"><b>EXCESO DE NEÓN</b><span>Contiene colores brillantes en cantidades que harían sonrojar a un letrero de Las Vegas.</span></div>
+        <div class="descriptor"><b>SIN COMPRAS NI ANUNCIOS</b><span>Lumi no acepta sobornos. Todo el contenido está desbloqueado desde el primer pulso.</span></div>
+      </div>
+      <div class="avisos">
+        <div class="aviso"><h3>⚠ FOTOSENSIBILIDAD</h3>El juego usa luces y destellos al ritmo de la música. Si tienes sensibilidad a luces intermitentes, juega con precaución y haz pausas.</div>
+        <div class="aviso"><h3>◉ PRIVACIDAD</h3>No hay cuentas, cookies de seguimiento ni analíticas. Tu récord y tus estrellas se guardan solo en tu navegador (localStorage) y nunca salen de tu equipo.</div>
+        <div class="aviso"><h3>♿ ACCESIBILIDAD</h3>Silencia el sonido con <kbd>M</kbd>, juega con una sola mano o en pantalla táctil, y usa el modo práctica para avanzar a tu ritmo.</div>
+      </div>
+      <p class="descargo">Clasificación creada para el taller ISWD823; no es una calificación oficial de ESRB ni PEGI. Pulso Neón es un homenaje al género de Geometry Dash y no está afiliado a RobTop Games.</p>
+    </div>
+  </div>
+</section>
+
+<section id="creditos" class="revelar">
+  <p class="etiqueta">MURO DE HONOR</p>
+  <h2>Quienes hicieron posible el pulso.</h2>
+  <p class="intro">Pulso Neón no usa imágenes ni sonidos descargados: todo lo que ves y escuchas se genera con código. Aun así, se apoya en herramientas libres que merecen su placa.</p>
+  <div class="muro">
+    <article class="placa">
+      <p class="rol">DISEÑO · CÓDIGO · ARTE · MÚSICA</p>
+      <p class="quien">Sara Lizbeth Guayasamin Nacimba</p>
+      <p>Creadora de Lumi y de Metrónoma. Arte de píxeles dibujado en código y música sintetizada con Web Audio API.</p>
+      <span class="licencia">OBRA ORIGINAL</span>
+    </article>
+    <article class="placa">
+      <p class="rol">MOTOR DEL JUEGO</p>
+      <p class="quien">Phaser 3</p>
+      <p>Framework HTML5 de Phaser Studio (Richard Davey y comunidad). <a href="https://phaser.io" rel="noopener">phaser.io</a></p>
+      <span class="licencia">LICENCIA MIT</span>
+    </article>
+    <article class="placa">
+      <p class="rol">TIPOGRAFÍA PIXEL</p>
+      <p class="quien">Press Start 2P</p>
+      <p>Fuente de CodeMan38, servida por Google Fonts. Usada en esta página.</p>
+      <span class="licencia">SIL OPEN FONT LICENSE 1.1</span>
+    </article>
+    <article class="placa">
+      <p class="rol">TIPOGRAFÍA DE TEXTO</p>
+      <p class="quien">Chakra Petch</p>
+      <p>Fuente de Cadson Demak, servida por Google Fonts. Usada en esta página.</p>
+      <span class="licencia">SIL OPEN FONT LICENSE 1.1</span>
+    </article>
+    <article class="placa">
+      <p class="rol">DISTRIBUCIÓN</p>
+      <p class="quien">jsDelivr · GitHub Pages · GitHub Actions</p>
+      <p>CDN gratuito para Phaser, hosting del sitio y despliegue automático.</p>
+      <span class="licencia">SERVICIOS GRATUITOS</span>
+    </article>
+    <article class="placa">
+      <p class="rol">INSPIRACIÓN</p>
+      <p class="quien">Geometry Dash</p>
+      <p>De RobTop Games. Homenaje al género de plataformas rítmicas; no se usó ningún asset del original.</p>
+      <span class="licencia">SOLO INSPIRACIÓN</span>
+    </article>
+  </div>
+</section>
+
+<!-- ===================== HOGAR: GITHUB PAGES ===================== -->
+<section id="hogar" class="revelar">
+  <div class="hogar">
+    <div>
+      <p class="etiqueta" style="color:#4ade80">DÓNDE VIVE LUMI</p>
+      <h2>Lumi vive en GitHub Pages.</h2>
+      <p>El juego y esta página se publican directamente desde el repositorio. Sin instaladores, sin cuentas, sin esperas: abres el enlace y Metrónoma ya está latiendo. Cada cambio en el código pasa por el bot verificador y se despliega solo con <b>GitHub Actions</b>.</p>
+      <a class="boton-itch" style="background:#238636;box-shadow:0 5px 0 #14532d" href="https://github.com/saraguayasamin/guayasamin-sara-jueg-gr3" rel="noopener">VER EL CÓDIGO ↗</a>
+    </div>
+    <div class="plataformas">
+      <div class="plat elegida" style="border-color:#4ade80;box-shadow:0 0 30px #4ade8033"><span><b>1 · push a main</b><br>Sara sube un cambio al repositorio</span><small style="color:#4ade80">GIT</small></div>
+      <div class="plat"><span><b>2 · el bot verifica</b><br>Todos los niveles deben poder completarse</span><small>ACTIONS</small></div>
+      <div class="plat"><span><b>3 · despliegue</b><br>La landing y el juego quedan publicados</span><small>PAGES</small></div>
+    </div>
+  </div>
+</section>
+
+<section class="final revelar">
+  <p class="etiqueta" style="justify-content:center">EL MENÚ DE INICIO TERMINA AQUÍ</p>
+  <h2>¿Tienes pulso? Demuéstralo.</h2>
+  <p>Metrónoma lleva demasiado tiempo en silencio. Lumi ya está corriendo; solo falta que alguien le diga cuándo saltar.</p>
+  <a class="jugar" href="juego/">
+    <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 0h2v1h2v1h2v1h2v2h-2v1h-2v1h-2v1h-2z" fill="currentColor"/></svg>
+    JUGAR AHORA
+  </a>
+</section>
+</main>
+
+<footer>
+  <span>Pulso Neón · © 2026 Sara Guayasamin · Taller ISWD823 · Hecho con Phaser 3</span>
+  <span><a href="https://github.com/saraguayasamin/guayasamin-sara-jueg-gr3">Código en GitHub</a></span>
+</footer>
+
+<script>
+/* ---------- Lumi, la misma de juego/game.js (16×16 píxeles) ---------- */
+const PAL = {H:'#f472b6',h:'#be185d',S:'#ffd7b5',E:'#1e1b4b',W:'#ffffff',R:'#fb7185',D:'#22d3ee',d:'#0e7490',C:'#7c3aed',B:'#facc15'};
+const HEAD = ['....HHHHHHH.....','..HHHHHHHHHHH...','.HHHHHHHHHHHHH..','.HHHHSSSSSSSHH..','hHHHSSSSSSSSSH..','hHHHSSWESSWESH..','hHHHSSWESSWES...','hhHHSRSSSSSRS...','.hh..SSSSSSS....'];
+const FRAMES = {
+  run1:[...HEAD,'.hhCDDDDDDD.....','.hCCDDDDDDSS....','..CCDDDDDD......','..CDDDDDDDD.....','...DdDDDdDD.....','...BB....BB.....','..BBB.....BBB...'],
+  run2:[...HEAD,'.hhCDDDDDDD.....','.hCCDDDDDDSS....','..CCDDDDDD......','..CDDDDDDDD.....','...DdDDDdDD.....','.....BBBB.......','.....BB.BBB.....'],
+  jump:[...HEAD,'hhCCDDDDDDDSS...','hCCCDDDDDD......','.CCDDDDDDDD.....','...DDDDDDDDD....','...BB.....BB....','..BB.......BB...','................'],
+};
+const LINES = ['¡Calentando motores!','Ese pincho te tenía ganas','Vas agarrando el ritmo','¡Ya pasaste la mitad!','Uy... ¡casi casi!','¡NOOO! ¡Estabas ahí mismo!'];
+
+const cv = document.getElementById('escena');
+const ctx = cv.getContext('2d');
+const W = cv.width, H = cv.height, T = 24, FLOOR = 280;
+const BEAT = 60 / 128, SPEED = (T * 4) / BEAT;      // un pulso = 4 casillas, como en sim.js
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function pixels(rows, x, y, s){
+  rows.forEach((r, j) => [...r].forEach((c, i) => { if (PAL[c]) { ctx.fillStyle = PAL[c]; ctx.fillRect(x + i*s, y + j*s, s, s); } }));
+}
+
+// Obstáculos: un pincho cada 2 pulsos, un muro agrietado cada 8; Lumi salta o dispara a tiempo.
+let t = 0, attempt = 1, last = performance.now();
+const LOOP = BEAT * 32;                                  // 32 pulsos ≈ 15 s y vuelve a empezar
+const obstacles = [];
+for (let b = 4; b < 32; b += 2) obstacles.push({ beat: b, type: (b % 8 === 6) ? 'wall' : 'spike' });
+const pctEl = document.getElementById('hud-pct'), intEl = document.getElementById('hud-int'), bub = document.getElementById('burbuja');
+
+function draw(now){
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (!reduce) t += dt;
+  if (t >= LOOP) { t -= LOOP; attempt++; intEl.textContent = attempt; }
+  const beatPhase = (t / BEAT) % 1, pulse = Math.max(0, 1 - beatPhase * 3);
+  const scroll = t * SPEED;
+  const lumiX = 90;
+
+  // cielo + montañas
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#0d0b2b'); g.addColorStop(1, '#2a1f6b');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#ffffff88';
+  for (let i = 0; i < 40; i++) { const sx = ((i * 97) - scroll * 0.05) % W; ctx.fillRect((sx + W) % W, (i * 53) % 200, 2, 2); }
+  ctx.fillStyle = '#2a1f6b';
+  ctx.beginPath(); ctx.moveTo(0, FLOOR);
+  for (let x = 0; x <= W + 80; x += 80) { const px = x - (scroll * 0.25) % 80; ctx.lineTo(px + 40, FLOOR - 70 - ((x / 80) % 3) * 22); ctx.lineTo(px + 80, FLOOR); }
+  ctx.fill();
+
+  // suelo de neón que late
+  ctx.fillStyle = '#141045'; ctx.fillRect(0, FLOOR, W, H - FLOOR);
+  ctx.strokeStyle = `rgba(34,211,238,${0.35 + pulse * 0.6})`; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(0, FLOOR); ctx.lineTo(W, FLOOR); ctx.stroke();
+  ctx.strokeStyle = '#22d3ee22'; ctx.lineWidth = 1;
+  for (let x = -(scroll % T); x < W; x += T) { ctx.beginPath(); ctx.moveTo(x, FLOOR); ctx.lineTo(x, H); ctx.stroke(); }
+
+  // obstáculos
+  let jumpY = 0, shooting = false;
+  for (const o of obstacles) {
+    const ox = lumiX + (o.beat * BEAT - t) * SPEED + 24;
+    if (ox < -40 || ox > W + 40) continue;
+    if (o.type === 'spike') {
+      ctx.fillStyle = '#1a1a35'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(ox, FLOOR); ctx.lineTo(ox + 12, FLOOR - 22); ctx.lineTo(ox + 24, FLOOR); ctx.closePath(); ctx.fill(); ctx.stroke();
+    } else if (t < o.beat * BEAT - BEAT * 0.5) {
+      ctx.fillStyle = '#3a2412'; ctx.fillRect(ox, FLOOR - 48, 24, 48);
+      ctx.strokeStyle = '#fb923c'; ctx.lineWidth = 2; ctx.strokeRect(ox + 1, FLOOR - 47, 22, 46);
+      ctx.strokeStyle = '#fde047'; ctx.beginPath(); ctx.moveTo(ox + 4, FLOOR - 44); ctx.lineTo(ox + 12, FLOOR - 28); ctx.lineTo(ox + 7, FLOOR - 8); ctx.moveTo(ox + 12, FLOOR - 28); ctx.lineTo(ox + 21, FLOOR - 22); ctx.stroke();
+    }
+    // salto parabólico centrado en el pincho; onda un pulso antes del muro
+    const dtb = t - o.beat * BEAT;
+    if (o.type === 'spike' && Math.abs(dtb) < BEAT * 0.45) { const k = dtb / (BEAT * 0.45); jumpY = Math.max(jumpY, 52 * (1 - k * k)); }
+    if (o.type === 'wall' && dtb > -BEAT * 1.0 && dtb < -BEAT * 0.5) {
+      shooting = true;
+      const wx = lumiX + 48 + (dtb + BEAT) / (BEAT * 0.5) * ((o.beat * BEAT - t) * SPEED - 24);
+      ctx.fillStyle = '#a5f3fc55'; ctx.beginPath(); ctx.ellipse(wx, FLOOR - 26, 10, 26, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#22d3ee'; ctx.beginPath(); ctx.ellipse(wx, FLOOR - 26, 5, 22, 0, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  // Lumi
+  const frame = jumpY > 2 ? FRAMES.jump : (Math.floor(t / (BEAT / 2)) % 2 ? FRAMES.run1 : FRAMES.run2);
+  ctx.fillStyle = `rgba(34,211,238,${0.15 + pulse * 0.25})`;
+  ctx.beginPath(); ctx.ellipse(lumiX + 24, FLOOR - 2, 18 - jumpY * 0.15, 4, 0, 0, Math.PI * 2); ctx.fill();
+  pixels(frame, lumiX, FLOOR - 48 - jumpY, 3);
+  if (shooting) { ctx.fillStyle = '#ffffff'; ctx.fillRect(lumiX + 42, FLOOR - 26 - jumpY, 6, 4); }
+
+  // cargas de alma
+  for (let i = 0; i < 3; i++) {
+    ctx.globalAlpha = (shooting && i === 2) ? 0.25 : 1;
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(22 + i * 22, 40, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#22d3ee'; ctx.beginPath(); ctx.arc(22 + i * 22, 40, 5.5, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  // barra de progreso
+  const pct = Math.floor((t / LOOP) * 100);
+  ctx.fillStyle = '#ffffff22'; ctx.fillRect(140, 14, 200, 8);
+  ctx.fillStyle = '#4ade80'; ctx.fillRect(140, 14, 2 * pct, 8);
+  pctEl.textContent = pct + '%';
+  bub.textContent = LINES[Math.min(LINES.length - 1, Math.floor(pct / 17))];
+
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+
+/* aparición de secciones al hacer scroll */
+const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('visto'); io.unobserve(e.target); } }), { threshold: 0.12 });
+document.querySelectorAll('.revelar').forEach((el) => io.observe(el));
+</script>
 </body>
 </html>

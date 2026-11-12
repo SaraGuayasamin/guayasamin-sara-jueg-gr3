@@ -5,7 +5,9 @@ Juego de ritmo y reflejos al estilo *Geometry Dash*, hecho con **Phaser 3** para
 
 **Autora:** Sara Lizbeth Guayasamin Nacimba
 
-**Jugar:** https://saraguayasamin.github.io/guayasamin-sara-jueg-gr3/
+**Landing page:** https://saraguayasamin.github.io/guayasamin-sara-jueg-gr3/
+
+**Jugar directo:** https://saraguayasamin.github.io/guayasamin-sara-jueg-gr3/juego/
 
 ## Cómo se juega
 
@@ -36,16 +38,18 @@ Cada nivel esconde 3 estrellas opcionales. El récord y las estrellas se guardan
 
 | Archivo | Contenido |
 | --- | --- |
-| `index.html` | Página e importación de Phaser por CDN |
-| `game.js` | Configuración de Phaser, escenas, cámara, entrada y gráficos |
-| `sim.js` | Física determinista a paso fijo, sin dependencias |
-| `levels.js` | Diseño de los niveles |
-| `audio.js` | Música y efectos generados con Web Audio |
+| `index.html` | Landing page (el "menú de inicio" con historia, clasificación y créditos) |
+| `juego/index.html` | Página del juego e importación de Phaser por CDN |
+| `juego/game.js` | Configuración de Phaser, escenas, cámara, entrada y gráficos |
+| `juego/sim.js` | Física determinista a paso fijo, sin dependencias |
+| `juego/levels.js` | Diseño de los niveles |
+| `juego/audio.js` | Música y efectos generados con Web Audio |
 | `tests/verificar-niveles.js` | Bot que comprueba que cada nivel se puede completar |
+| `.github/workflows/desplegar-pages.yml` | CI/CD: verifica los niveles y despliega el sitio en GitHub Pages |
 
 ## Ejecutar en local
 
-Abre la carpeta en VS Code y usa **Open with Live Server** sobre `index.html`.
+Abre la carpeta en VS Code y usa **Open with Live Server** sobre `index.html` (landing) o `juego/index.html` (juego).
 
 Para comprobar los niveles (requiere Node.js):
 

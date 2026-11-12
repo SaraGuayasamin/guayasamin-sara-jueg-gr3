@@ -3,8 +3,8 @@
 // el nivel no exige precisión imposible. Uso: node tests/verificar-niveles.js
 const path = require('path');
 const fs = require('fs');
-const S = require('../sim.js');
-const LEVELS = require('../levels.js');
+const S = require('../juego/sim.js');
+const LEVELS = require('../juego/levels.js');
 
 const STEPS_PER_DECISION = 10;
 
