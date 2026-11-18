@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pulso Neón — Corre al ritmo. Devuélvele el pulso a la ciudad.</title>
-<meta name="description" content="Pulso Neón: un juego de ritmo y reflejos hecho con Phaser 3. Lumi corre a 128 BPM para devolverle el pulso a una ciudad silenciada por la Estática.">
+<meta name="description" content="Pulso Neón: un juego de ritmo y reflejos hecho con Phaser 3. Lumi, una mensajera que guarda el último compás de su ciudad, corre a 128 BPM para devolverle el pulso a Metrónoma.">
 <meta property="og:title" content="Pulso Neón">
 <meta property="og:description" content="Salta al ritmo. Muere. Repite. Presume. Juega gratis en tu navegador.">
 <meta name="theme-color" content="#0d0b2b">
@@ -92,6 +92,11 @@ h3{font-family:var(--pixel);font-weight:400;font-size:14px;line-height:1.6;color
 .capitulo p+p{margin-top:12px}
 .cita{margin-top:40px;font-family:var(--pixel);font-size:clamp(12px,1.4vw,15px);line-height:2;color:#fff;text-align:center;padding:28px;border-top:1px dashed #22d3ee55;border-bottom:1px dashed #22d3ee55}
 .cita span{color:var(--rosa)}
+.glosario-titulo{margin:56px 0 18px}
+.glosario{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.glosario div{padding:16px 20px;background:#14104599;border:1px solid #ffffff12;border-left:3px solid var(--cian);border-radius:0 8px 8px 0}
+.glosario dt{font-family:var(--pixel);font-size:10px;line-height:1.8;color:var(--cian);margin-bottom:6px}
+.glosario dd{font-size:16px;color:#fff}
 
 /* Resonancia ludonarrativa */
 .resonancia{display:grid;gap:14px}
@@ -220,7 +225,7 @@ footer a{color:var(--cian)}
     <p class="insert">◆ PLAYER 1 · <span>PRESIONA JUGAR</span></p>
     <h1>PULSO<em>NEÓN</em></h1>
     <p class="lema">SALTA AL RITMO. MUERE. REPITE. PRESUME.</p>
-    <p class="logline">Una chispa de neón llamada <b>Lumi</b> no puede dejar de correr: ella <b>es</b> el último latido de una ciudad que la Estática dejó en silencio. Tiene 128 pulsos por minuto, tres cargas de alma y ninguna excusa para detenerse.</p>
+    <p class="logline">El Director Mudo detuvo el corazón de Metrónoma. El último compás de la ciudad quedó atrapado en los audífonos de <b>Lumi</b>, una mensajera que ahora <b>no puede dejar de correr</b>: si se detiene, la música se apaga para siempre.</p>
     <div class="acciones">
       <a class="jugar" href="juego/">
         <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 0h2v1h2v1h2v1h2v2h-2v1h-2v1h-2v1h-2z" fill="currentColor"/></svg>
@@ -240,62 +245,74 @@ footer a{color:var(--cian)}
 
 <!-- ===================== MISIÓN 1: EL ALMA ===================== -->
 <section id="historia" class="revelar">
-  <p class="etiqueta">EL ALMA DEL JUEGO</p>
+  <p class="etiqueta">LA HISTORIA</p>
   <h2>Hubo una ciudad que latía a 128 BPM.</h2>
-  <p class="intro">Se llamaba <strong>Metrónoma</strong>. Sus semáforos parpadeaban a tiempo, sus puentes se encendían en cada compás y hasta los letreros bailaban. Hasta que llegó la <strong>Estática</strong>.</p>
+  <p class="intro">En <strong>Metrónoma</strong> todo iba a tiempo. Los semáforos cambiaban en cada compás, los puentes se encendían con el bombo y los trenes llegaban justo en el pulso. Todo lo marcaba el <strong>Corazón de Compás</strong>, un metrónomo gigante en la cima de la <strong>Torre Tormenta</strong>. Hasta la noche en que dejó de sonar.</p>
 
   <div class="cronica">
     <article class="capitulo">
-      <h3>El silencio</h3>
-      <p>La Estática no destruye: <em>apaga</em>. Donde pasa, el neón se vuelve gris, los caminos se llenan de pinchos y los muros se agrietan de ruido.</p>
-      <p>Su ejército, el <strong>Enjambre Mudo</strong>, son naves rojas que aparecen sin aviso para cortar el último ritmo que queda.</p>
+      <h3>El Director Mudo</h3>
+      <p>Nadie amaba la música de Metrónoma tanto como el director de su orquesta. Por eso nadie entendió por qué, una noche, subió a la Torre Tormenta y <em>detuvo</em> el Corazón de Compás.</p>
+      <p>Desde entonces lo llaman el <strong>Director Mudo</strong>. De su batuta brota la <strong>Estática</strong>, un ruido gris que apaga el neón y llena las calles de pinchos y muros. Para callar cualquier ritmo que sobreviva, envía al <strong>Enjambre Mudo</strong>: naves rojas que aparecen de la nada.</p>
     </article>
     <article class="capitulo">
-      <h3>La chispa</h3>
-      <p><strong>Lumi</strong> nació del último latido de la ciudad. Por eso no puede parar: si deja de correr, el pulso se apaga con ella.</p>
-      <p>Dentro lleva tres <strong>cargas de alma</strong>. Cada una se convierte en una onda de energía capaz de romper un muro de estática o derribar una nave. Y se recargan con el propio ritmo.</p>
+      <h3>La mensajera</h3>
+      <p>Esa noche, <strong>Lumi</strong> repartía paquetes con los audífonos puestos. Cuando el Corazón se detuvo, el último compás de la ciudad quedó atrapado en su música.</p>
+      <p>Ahora Lumi es lo único que todavía late en Metrónoma, y por eso no puede detenerse. Dentro lleva <strong>tres notas de alma</strong> que puede lanzar como una onda capaz de romper la Estática. Si corre a tiempo, el ritmo se las devuelve.</p>
     </article>
     <article class="capitulo">
-      <h3>El eco</h3>
-      <p>Cuando Lumi cae, no muere: se convierte en eco y vuelve al inicio del camino, <em>recordando</em> dónde falló.</p>
-      <p>Cada intento es un ensayo. Cada ensayo la acerca a la Torre de la Tormenta, donde la Estática guarda el corazón robado de Metrónoma.</p>
+      <h3>El estribillo</h3>
+      <p>Cuando Lumi cae, la canción no termina: vuelve al estribillo. Lumi reaparece al inicio del barrio, con la música desde el compás uno y el recuerdo de cada error.</p>
+      <p>Su camino cruza tres barrios hasta la cima de la Torre Tormenta. Allí la espera el Director Mudo y una pregunta que nadie le ha hecho: <strong>¿por qué quiso el silencio?</strong></p>
     </article>
   </div>
-  <p class="cita">“No necesitas ser perfecta. <span>Necesitas estar a tiempo.</span>”<br>— Lumi, intento n.º 47</p>
+  <p class="cita">“No necesito ser perfecta. <span>Necesito llegar a tiempo.</span>”<br>— Lumi, intento n.º 47</p>
+
+  <h3 class="glosario-titulo">Así se ve la historia mientras juegas</h3>
+  <dl class="glosario">
+    <div><dt>PINCHOS Y HUECOS</dt><dd>La Estática corroyendo el asfalto de la ciudad.</dd></div>
+    <div><dt>MUROS AGRIETADOS</dt><dd>Estática que se volvió sólida. Solo una nota de alma la rompe.</dd></div>
+    <div><dt>NAVES ROJAS Y ALERTA “!”</dt><dd>El Enjambre Mudo. La alerta es el zumbido que las delata antes de aparecer.</dd></div>
+    <div><dt>TRES CARGAS DE ALMA</dt><dd>Las notas que Lumi guarda en sus audífonos. Se recargan con el ritmo y al vencer a la Estática.</dd></div>
+    <div><dt>ESTRELLAS</dt><dd>Notas perdidas de la canción de Metrónoma, escondidas en las rutas más arriesgadas.</dd></div>
+    <div><dt>PORTALES Y ESFERAS VERDES</dt><dd>Grietas en el cielo de Gravedad Cero, donde la Estática confundió arriba con abajo.</dd></div>
+    <div><dt>ESFERAS Y TRAMPOLINES</dt><dd>Restos de neón que todavía guardan energía. Tócalos a tiempo y te impulsan.</dd></div>
+    <div><dt>LA NAVE</dt><dd>La nave de reparto de Lumi, la única forma de subir por la tormenta.</dd></div>
+  </dl>
 </section>
 
 <section id="por-que" class="revelar">
   <p class="etiqueta">RESONANCIA LUDONARRATIVA</p>
   <h2>Lo que haces con las manos es lo que cuenta la historia.</h2>
-  <p class="intro">El taller pregunta cómo hacer que aprender sea divertido y no un castigo. Pulso Neón responde con su mecánica principal: <strong>en este juego equivocarse es la forma de avanzar</strong>, y la historia explica por qué.</p>
+  <p class="intro">¿Cómo se consigue que fallar se sienta como avanzar y no como un castigo? Pulso Neón responde con su mecánica principal: <strong>en este juego equivocarse es la forma de avanzar</strong>, y la historia explica por qué.</p>
 
   <div class="resonancia">
     <div class="cabecera-fila" aria-hidden="true"><span>LA MECÁNICA</span><span></span><span>LA HISTORIA</span><span></span><span>LO QUE APRENDES</span></div>
     <div class="fila">
       <div class="celda m"><small>LA MECÁNICA</small><p>Lumi corre sola: tú solo decides <em>cuándo</em> saltar.</p></div>
       <div class="flecha">→</div>
-      <div class="celda n"><small>LA HISTORIA</small><p>Ella es el pulso de la ciudad; detenerse es apagarse.</p></div>
+      <div class="celda n"><small>LA HISTORIA</small><p>Lumi guarda el último compás de la ciudad: si se detiene, la música se apaga.</p></div>
       <div class="flecha">→</div>
       <div class="celda a"><small>LO QUE APRENDES</small><p><b>Sincronía rítmica.</b> Un pulso equivale exactamente a 4 casillas: los obstáculos caen en el compás y aprendes a <em>escuchar</em> antes de reaccionar.</p></div>
     </div>
     <div class="fila">
       <div class="celda m"><small>LA MECÁNICA</small><p>Un golpe y vuelves al inicio, al instante, sin pantallas de castigo.</p></div>
       <div class="flecha">→</div>
-      <div class="celda n"><small>LA HISTORIA</small><p>Lumi no muere: se vuelve eco y recuerda dónde falló.</p></div>
+      <div class="celda n"><small>LA HISTORIA</small><p>La canción vuelve al estribillo y Lumi reaparece recordando dónde falló.</p></div>
       <div class="flecha">→</div>
       <div class="celda a"><small>LO QUE APRENDES</small><p><b>Ensayo y error con retroalimentación inmediata.</b> El ciclo intentar → fallar → ajustar es el mismo de depurar código o practicar un instrumento.</p></div>
     </div>
     <div class="fila">
       <div class="celda m"><small>LA MECÁNICA</small><p>Solo 3 cargas de poder: ¿esquivas la nave o la derribas?</p></div>
       <div class="flecha">→</div>
-      <div class="celda n"><small>LA HISTORIA</small><p>El alma de Lumi es finita y se recarga con el ritmo.</p></div>
+      <div class="celda n"><small>LA HISTORIA</small><p>Lumi solo guarda tres notas de alma, y el ritmo se las devuelve poco a poco.</p></div>
       <div class="flecha">→</div>
       <div class="celda a"><small>LO QUE APRENDES</small><p><b>Decidir con recursos limitados y bajo presión.</b> Gastar la carga ahora puede dejarte sin ella frente al muro que sí exige romperse.</p></div>
     </div>
     <div class="fila">
       <div class="celda m"><small>LA MECÁNICA</small><p>Modo práctica con puntos de control y frases de ánimo tras cada caída.</p></div>
       <div class="flecha">→</div>
-      <div class="celda n"><small>LA HISTORIA</small><p>Los ecos de Lumi entrenan antes de enfrentar la Tormenta.</p></div>
+      <div class="celda n"><small>LA HISTORIA</small><p>Cada repaso de un tramo es un ensayo antes de subir a la Torre Tormenta.</p></div>
       <div class="flecha">→</div>
       <div class="celda a"><small>LO QUE APRENDES</small><p><b>Aprendizaje por andamiaje.</b> Primero dominas tramo por tramo; luego te atreves sin red. El progreso se mide en porcentaje, no en fracasos.</p></div>
     </div>
@@ -320,7 +337,7 @@ footer a{color:var(--cian)}
     <article class="carta">
       <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><path d="M3 12l8-6v12zM13 6h3l5 6-5 6h-3"/></svg></div>
       <h3>El Enjambre Mudo</h3>
-      <p>Naves enemigas avisadas por una alerta “!”. Esquívalas o derríbalas: tú decides.</p>
+      <p>Naves enemigas que aparecen de la nada, avisadas por una alerta “!”. Esquívalas o derríbalas: tú decides.</p>
     </article>
     <article class="carta">
       <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><path d="M12 3l2.6 5.5 6 .8-4.4 4.1 1.1 6L12 16.6 6.7 19.4l1.1-6L3.4 9.3l6-.8z"/></svg></div>
@@ -335,7 +352,7 @@ footer a{color:var(--cian)}
     <article class="carta">
       <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg></div>
       <h3>Juega donde sea</h3>
-      <p>Teclado, ratón o pantalla táctil con botón de PODER. Funciona en el móvil.</p>
+      <p>Teclado o ratón. En pantallas táctiles aparece un botón de PODER.</p>
     </article>
   </div>
 </section>
@@ -347,22 +364,22 @@ footer a{color:var(--cian)}
     <article class="nivel n1">
       <p class="dif">01 · FÁCIL</p>
       <h3>Primer Pulso</h3>
-      <p>El barrio donde Lumi despierta. La Estática apenas empieza a sembrar pinchos; aquí aprendes a saltar y a usar tu alma.</p>
-      <p class="anade">Pinchos · bloques · huecos · trampolines · esferas</p>
+      <p>El barrio del Mercado, donde Lumi hacía sus repartos. La Estática apenas empieza a sembrar pinchos: aquí aprendes a saltar, a romper tu primer muro y a esquivar tu primera nave.</p>
+      <p class="anade">Pinchos · bloques · huecos · trampolines · esferas · muros · naves</p>
       <p class="est">★☆☆</p>
     </article>
     <article class="nivel n2">
       <p class="dif">02 · MEDIA</p>
       <h3>Gravedad Cero</h3>
-      <p>Un distrito donde el ruido confundió al cielo con el suelo. Los portales azules te ponen de cabeza y las esferas verdes te dan la vuelta.</p>
-      <p class="anade">Portales y esferas de gravedad invertida</p>
+      <p>El distrito de los Observatorios, donde la Estática rompió el cielo. Los portales azules te ponen de cabeza y las esferas verdes te dan la vuelta, mientras el Enjambre te persigue también por el techo.</p>
+      <p class="anade">Gravedad invertida · naves por arriba y por abajo · muros</p>
       <p class="est">★★☆</p>
     </article>
     <article class="nivel n3">
       <p class="dif">03 · DIFÍCIL</p>
       <h3>Tormenta</h3>
-      <p>La torre donde la Estática guarda el corazón de la ciudad. Lumi sube a su nave y atraviesa túneles a toda velocidad.</p>
-      <p class="anade">Nave · túneles · portales de velocidad</p>
+      <p>La subida a la Torre Tormenta, donde el Director Mudo guarda el Corazón de Compás. Lumi sube a su nave de reparto, cruza túneles y rompe muros en pleno vuelo.</p>
+      <p class="anade">Nave · túneles · portales de velocidad · escuadrones · muros en vuelo</p>
       <p class="est">★★★</p>
     </article>
   </div>
@@ -388,7 +405,7 @@ footer a{color:var(--cian)}
     <ul class="lista-ing">
       <li><b>Física determinista.</b> La simulación corre a paso fijo y sin dependencias: el mismo salto en el mismo pulso da siempre el mismo resultado. Si fallas, fue el tiempo, no la suerte.</li>
       <li><b>Un bot que juega por ti.</b> Antes de cada publicación, un programa recorre todos los niveles y comprueba que se pueden terminar, que todas las estrellas son alcanzables y que los muros realmente exigen usar el poder.</li>
-      <li><b>Publicación automática (CI/CD).</b> Cada <code>push</code> a <code>main</code> pasa por el bot en GitHub Actions; si todo está bien, el sitio se publica solo en GitHub Pages en un par de minutos.</li>
+      <li><b>Publicación automática (CI/CD).</b> Cada <code>push</code> a <code>main</code> pasa por el bot en GitHub Actions. Si todo está bien, el sitio se sube a la rama <code>gh-pages</code> y GitHub Pages lo publica en un par de minutos.</li>
       <li><b>Sin assets de terceros.</b> El arte de píxeles se dibuja con código y la música se sintetiza con Web Audio.</li>
     </ul>
     <div class="terminal" role="img" aria-label="Salida del bot de verificación de niveles">
@@ -399,8 +416,7 @@ footer a{color:var(--cian)}
     <span class="k">run:</span> node tests/verificar-niveles.js
   <span class="k">desplegar:</span>
     <span class="k">needs:</span> verificar
-    <span class="k">uses:</span> <span class="s">actions/deploy-pages@v4</span>
-    <span class="k">path:</span> _site   <span class="c"># landing + juego/</span>
+    <span class="k">run:</span> git push -f <span class="s">gh-pages</span>   <span class="c"># landing + juego/</span>
 
 <span class="c">$ node tests/verificar-niveles.js</span>
   con todas las estrellas: <span class="ok">GANA</span>
@@ -421,7 +437,7 @@ footer a{color:var(--cian)}
     </div>
     <div>
       <div class="descriptores">
-        <div class="descriptor"><b>VIOLENCIA DE FANTASÍA LEVE</b><span>Dirigida exclusivamente a naves de la Estática y a muros que, siendo honestos, ya estaban agrietados.</span></div>
+        <div class="descriptor"><b>VIOLENCIA DE FANTASÍA LEVE</b><span>Dirigida exclusivamente a las naves del Enjambre Mudo y a muros que, siendo honestos, ya estaban agrietados.</span></div>
         <div class="descriptor"><b>FRUSTRACIÓN RÍTMICA</b><span>Moderada. Puede provocar frases como “¡estaba ahí mismo!” a volumen alto. El juego te dará la razón.</span></div>
         <div class="descriptor"><b>EXCESO DE NEÓN</b><span>Contiene colores brillantes en cantidades que harían sonrojar a un letrero de Las Vegas.</span></div>
         <div class="descriptor"><b>SIN COMPRAS NI ANUNCIOS</b><span>Lumi no acepta sobornos. Todo el contenido está desbloqueado desde el primer pulso.</span></div>
@@ -492,7 +508,7 @@ footer a{color:var(--cian)}
     <div class="plataformas">
       <div class="plat elegida" style="border-color:#4ade80;box-shadow:0 0 30px #4ade8033"><span><b>1 · push a main</b><br>Sara sube un cambio al repositorio</span><small style="color:#4ade80">GIT</small></div>
       <div class="plat"><span><b>2 · el bot verifica</b><br>Todos los niveles deben poder completarse</span><small>ACTIONS</small></div>
-      <div class="plat"><span><b>3 · despliegue</b><br>La landing y el juego quedan publicados</span><small>PAGES</small></div>
+      <div class="plat"><span><b>3 · despliegue</b><br>El sitio se sube a la rama gh-pages y Pages lo publica</span><small>PAGES</small></div>
     </div>
   </div>
 </section>
@@ -500,7 +516,7 @@ footer a{color:var(--cian)}
 <section class="final revelar">
   <p class="etiqueta" style="justify-content:center">EL MENÚ DE INICIO TERMINA AQUÍ</p>
   <h2>¿Tienes pulso? Demuéstralo.</h2>
-  <p>Metrónoma lleva demasiado tiempo en silencio. Lumi ya está corriendo; solo falta que alguien le diga cuándo saltar.</p>
+  <p>Metrónoma lleva demasiado tiempo en silencio y el Director Mudo espera en la cima de la torre. Lumi ya está corriendo; solo falta que alguien le diga cuándo saltar.</p>
   <a class="jugar" href="juego/">
     <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 0h2v1h2v1h2v1h2v2h-2v1h-2v1h-2v1h-2z" fill="currentColor"/></svg>
     JUGAR AHORA
